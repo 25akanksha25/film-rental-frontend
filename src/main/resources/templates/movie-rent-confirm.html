@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('CineRental - Confirm Rental')}"></head>
+<body>
+<div class="bg-animation"></div>
+<div class="app-layout">
+    <div th:replace="~{fragments/layout :: sidebar('movies')}"></div>
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1>🎬 Confirm Rental</h1>
+                <p>Step 2 of 2 — Review and confirm payment</p>
+            </div>
+        </div>
+
+        <!-- Progress Steps -->
+        <div class="steps-bar">
+            <div class="step completed">
+                <div class="step-number">✓</div>
+                <div class="step-label">Find Customer</div>
+            </div>
+            <div class="step-line step-line-done"></div>
+            <div class="step active">
+                <div class="step-number">2</div>
+                <div class="step-label">Confirm & Pay</div>
+            </div>
+        </div>
+
+        <div style="max-width:700px;margin:0 auto;">
+            <!-- Movie Info -->
+            <div class="card" style="margin-bottom:1.5rem;">
+                <div class="card-header" style="background:linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.08));">
+                    <h3>🎬 Movie Details</h3>
+                </div>
+                <div class="card-body">
+                    <div class="confirm-row">
+                        <span class="confirm-label">Title</span>
+                        <span class="confirm-value" style="font-size:1.05rem" th:text="${movie.title}">Movie Title</span>
+                    </div>
+                    <div class="confirm-row">
+                        <span class="confirm-label">Rating</span>
+                        <span class="badge badge-info" th:text="${movie.rating}">PG</span>
+                    </div>
+                    <div class="confirm-row">
+                        <span class="confirm-label">Duration</span>
+                        <span class="confirm-value" th:text="${movie.length} + ' min'">90 min</span>
+                    </div>
+                    <div class="confirm-row">
+                        <span class="confirm-label">Rental Rate</span>
+                        <span class="confirm-value" style="color:var(--success);font-weight:800;font-size:1.1rem" th:text="'$' + ${movie.rentalRate}">$0.99</span>
+                    </div>
+                    <div th:if="${inventory != null}" class="confirm-row">
+                        <span class="confirm-label">Available Copies (your store)</span>
+                        <span class="confirm-value"
+                              th:style="${inventory.availableCopies > 0} ? 'color:var(--success);font-weight:700' : 'color:var(--danger);font-weight:700'"
+                              th:text="${inventory.availableCopies} + ' of ' + ${inventory.totalCopies}">0 of 0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Customer Info -->
+            <div class="card" style="margin-bottom:1.5rem;">
+                <div class="card-header">
+                    <h3>👤 Customer</h3>
+                    <span class="badge" th:classappend="${customer.active} ? 'badge-success' : 'badge-danger'"
+                          th:text="${customer.active} ? 'Active' : 'Inactive'">Active</span>
+                </div>
+                <div class="card-body">
+                    <div class="confirm-row">
+                        <span class="confirm-label">Name</span>
+                        <span class="confirm-value" th:text="${customer.fullName}">Customer Name</span>
+                    </div>
+                    <div class="confirm-row">
+                        <span class="confirm-label">Email</span>
+                        <span class="confirm-value" th:text="${customer.email}">email</span>
+                    </div>
+                    <div class="confirm-row">
+                        <span class="confirm-label">Customer ID</span>
+                        <span class="confirm-value" style="color:var(--accent-primary)" th:text="'#' + ${customer.customerId}">ID</span>
+                    </div>
+                    <div class="confirm-row">
+                        <span class="confirm-label">Store</span>
+                        <span class="confirm-value" th:text="'Store #' + ${customer.storeId}">Store</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Confirmation -->
+            <div class="card" style="margin-bottom:1.5rem;border-color:rgba(34,197,94,0.3);">
+                <div class="card-header" style="background:linear-gradient(135deg, rgba(34,197,94,0.08), rgba(34,197,94,0.12));">
+                    <h3 style="color:var(--success);">💳 Payment Summary</h3>
+                </div>
+                <div class="card-body">
+                    <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1rem;">
+                        The customer will be charged the rental rate upon return of the movie. Please confirm the details below.
+                    </p>
+                    <form th:action="@{'/movies/' + ${movie.filmId} + '/rent/create'}" method="post" id="rentalForm">
+                        <input type="hidden" name="customerId" th:value="${customer.customerId}"/>
+                        <input type="hidden" name="inventoryId" th:value="${autoInventoryId}"/>
+                        <input type="hidden" name="staffId" th:value="${staffId}"/>
+
+                        <!-- Auto-selected copy info (no manual entry) -->
+                        <div th:if="${autoInventoryId != null}" class="auto-info-card">
+                            <div class="auto-info-icon">✓</div>
+                            <div style="flex:1;">
+                                <div style="font-weight:700;color:var(--text-primary);font-size:0.95rem;">
+                                    Copy #<span th:text="${autoInventoryId}">123</span> auto-selected
+                                </div>
+                                <small style="color:var(--text-secondary);font-size:0.8rem;">
+                                    The next available copy at your store will be rented out. Staff ID
+                                    <strong th:text="${staffId}">1</strong> is taken from your session.
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- No copies available -->
+                        <div th:if="${autoInventoryId == null}" class="auto-info-card auto-info-error">
+                            <div class="auto-info-icon" style="background:var(--danger);">!</div>
+                            <div style="flex:1;">
+                                <div style="font-weight:700;color:var(--danger);font-size:0.95rem;">No copies available</div>
+                                <small style="color:var(--text-secondary);font-size:0.8rem;">
+                                    All copies of this movie at your store are currently rented out.
+                                </small>
+                            </div>
+                        </div>
+
+                        <div style="background:var(--bg-secondary);border-radius:var(--radius);padding:1rem;margin-top:1.5rem;border:1px solid var(--border-color);">
+                            <div class="confirm-row" style="padding:0.3rem 0;">
+                                <span style="font-weight:700;color:var(--text-primary);">Total Charge</span>
+                                <span style="font-weight:800;font-size:1.3rem;color:var(--success)" th:text="'$' + ${movie.rentalRate}">$0.99</span>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display:flex;gap:1rem;">
+                <a th:href="@{'/movies/' + ${movie.filmId} + '/rent'}" class="btn btn-secondary" style="flex:1;padding:1rem;justify-content:center;">
+                    ← Go Back
+                </a>
+                <button type="submit" form="rentalForm" class="btn btn-success" style="flex:2;padding:1rem;font-size:1.05rem;"
+                        th:disabled="${autoInventoryId == null}">
+                    ✅ Confirm & Create Rental
+                </button>
+            </div>
+
+            <div style="text-align:center;margin-top:1rem;">
+                <a th:href="@{'/movies/' + ${movie.filmId}}" style="color:var(--text-muted);font-size:0.85rem;">Cancel and go back to movie</a>
+            </div>
+        </div>
+    </main>
+</div>
+
+<style>
+    .steps-bar { display: flex; align-items: center; justify-content: center; margin-bottom: 2.5rem; gap: 0; }
+    .step { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+    .step-number { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: 700; background: var(--bg-card); border: 2px solid var(--border-color); color: var(--text-muted); }
+    .step.active .step-number { background: var(--accent-gradient); border-color: transparent; color: white; box-shadow: 0 4px 15px rgba(99,102,241,0.4); }
+    .step.completed .step-number { background: var(--success); border-color: transparent; color: white; }
+    .step-label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .step.active .step-label { color: var(--accent-primary); }
+    .step.completed .step-label { color: var(--success); }
+    .step-line { flex: 0 0 100px; height: 2px; background: var(--border-color); margin: 0 0.5rem; margin-bottom: 1.5rem; }
+    .step-line-done { background: var(--success); }
+    .confirm-row { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0; border-bottom: 1px solid rgba(99,102,241,0.07); }
+    .confirm-row:last-child { border-bottom: none; }
+    .confirm-label { color: var(--text-secondary); font-size: 0.9rem; }
+    .confirm-value { color: var(--text-primary); font-weight: 600; font-size: 0.9rem; }
+    .auto-info-card {
+        display: flex; align-items: center; gap: 0.85rem;
+        background: rgba(34,197,94,0.06); border: 1px solid rgba(34,197,94,0.25);
+        border-radius: var(--radius); padding: 0.85rem 1rem;
+    }
+    .auto-info-card.auto-info-error {
+        background: rgba(239,68,68,0.06); border-color: rgba(239,68,68,0.25);
+    }
+    .auto-info-icon {
+        width: 32px; height: 32px; border-radius: 50%; background: var(--success); color: white;
+        display: flex; align-items: center; justify-content: center; font-weight: 800;
+        flex-shrink: 0; font-size: 0.95rem;
+    }
+    .btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none !important; }
+</style>
+</body>
+</html>
