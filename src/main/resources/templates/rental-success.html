@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('CineRental - Rental Created')}"></head>
+<body>
+<div class="bg-animation"></div>
+<div class="app-layout">
+    <div th:replace="~{fragments/layout :: sidebar('movies')}"></div>
+    <main class="main-content">
+        <div class="success-wrapper">
+            <div class="success-card">
+                <!-- Animated check icon -->
+                <div class="check-wrap">
+                    <svg class="check-svg" viewBox="0 0 52 52">
+                        <circle class="check-circle" cx="26" cy="26" r="25" fill="none"/>
+                        <path class="check-mark" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+                    </svg>
+                </div>
+
+                <h1 class="success-title">Rental Created Successfully</h1>
+                <p class="success-sub">The movie has been rented out. The customer is good to go!</p>
+
+                <!-- Receipt-style summary (one object from backend, no extra lookups) -->
+                <div class="receipt">
+                    <div class="receipt-row">
+                        <span class="receipt-label">🎬 Movie</span>
+                        <span class="receipt-value" th:text="${confirmation.movieTitle}">Title</span>
+                    </div>
+                    <div class="receipt-row">
+                        <span class="receipt-label">👤 Customer</span>
+                        <span class="receipt-value" th:text="${confirmation.customerName}">Customer</span>
+                    </div>
+                    <div class="receipt-row">
+                        <span class="receipt-label">📦 Copy</span>
+                        <span class="receipt-value" th:text="'#' + ${confirmation.copyId}">#0</span>
+                    </div>
+                    <div class="receipt-row">
+                        <span class="receipt-label">🆔 Rental</span>
+                        <span class="receipt-value" th:text="'#' + ${confirmation.rentalId}">#0</span>
+                    </div>
+                    <div class="receipt-row receipt-total">
+                        <span class="receipt-label">💵 Amount</span>
+                        <span class="receipt-value" th:text="'$' + ${confirmation.amount}">$0.00</span>
+                    </div>
+                </div>
+
+                <!-- Action buttons -->
+                <div class="action-row">
+                    <a href="/dashboard" class="btn btn-secondary action-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                        Back to Dashboard
+                    </a>
+                    <a href="/movies" class="btn btn-primary action-btn">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></svg>
+                        Films Section
+                    </a>
+                </div>
+
+                <a th:href="@{'/movies/' + ${filmId}}" class="back-link">View this movie's details →</a>
+            </div>
+        </div>
+    </main>
+</div>
+
+<style>
+    .success-wrapper {
+        min-height: calc(100vh - 4rem);
+        display: flex; align-items: center; justify-content: center;
+        padding: 2rem 1rem;
+    }
+    .success-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        padding: 3rem 2.5rem 2rem;
+        max-width: 520px; width: 100%;
+        text-align: center;
+        animation: cardIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes cardIn {
+        from { opacity: 0; transform: translateY(12px) scale(0.98); }
+        to   { opacity: 1; transform: translateY(0)   scale(1);    }
+    }
+    .check-wrap {
+        width: 88px; height: 88px;
+        margin: 0 auto 1.25rem;
+        border-radius: 50%; background: rgba(34,197,94,0.1);
+        display: flex; align-items: center; justify-content: center;
+    }
+    .check-svg { width: 60px; height: 60px; }
+    .check-circle {
+        stroke: var(--success); stroke-width: 2;
+        stroke-dasharray: 166; stroke-dashoffset: 166;
+        animation: drawCircle 0.7s ease-out 0.1s forwards;
+    }
+    .check-mark {
+        stroke: var(--success); stroke-width: 4;
+        stroke-linecap: round; stroke-linejoin: round;
+        stroke-dasharray: 48; stroke-dashoffset: 48;
+        animation: drawMark 0.4s ease-out 0.8s forwards;
+    }
+    @keyframes drawCircle { to { stroke-dashoffset: 0; } }
+    @keyframes drawMark   { to { stroke-dashoffset: 0; } }
+
+    .success-title {
+        font-size: 1.6rem; font-weight: 800;
+        color: var(--text-primary); margin: 0 0 0.4rem;
+    }
+    .success-sub {
+        color: var(--text-secondary); font-size: 0.95rem;
+        margin-bottom: 1.75rem;
+    }
+
+    .receipt {
+        background: var(--bg-primary);
+        border: 1px dashed var(--border-color);
+        border-radius: var(--radius);
+        padding: 1.1rem 1.25rem;
+        text-align: left;
+        margin-bottom: 1.75rem;
+    }
+    .receipt-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 0.55rem 0;
+        border-bottom: 1px dashed var(--border-color);
+        font-size: 0.92rem;
+    }
+    .receipt-row:last-child { border-bottom: none; }
+    .receipt-label { color: var(--text-secondary); font-weight: 500; }
+    .receipt-value { color: var(--text-primary); font-weight: 600; }
+    .receipt-total { margin-top: 0.25rem; padding-top: 0.75rem; border-top: 1px solid var(--border-color); }
+    .receipt-total .receipt-label { font-weight: 700; color: var(--text-primary); }
+    .receipt-total .receipt-value {
+        font-size: 1.15rem; font-weight: 800; color: var(--success);
+    }
+
+    .action-row {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+    .action-btn {
+        width: 100%; justify-content: center;
+        padding: 0.85rem 1rem;
+    }
+
+    .back-link {
+        display: inline-block; color: var(--text-muted);
+        font-size: 0.85rem; text-decoration: none;
+        transition: color 0.15s;
+    }
+    .back-link:hover { color: var(--accent-blue); }
+
+    @media (max-width: 480px) {
+        .action-row { grid-template-columns: 1fr; }
+        .success-card { padding: 2rem 1.5rem; }
+    }
+</style>
+</body>
+</html>
