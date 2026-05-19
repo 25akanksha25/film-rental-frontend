@@ -1,5 +1,7 @@
 package com.example.frontend.service;
 
+import com.example.frontend.dto.RentalConfirmationDto;
+import com.example.frontend.dto.RentalRequestDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -61,6 +63,19 @@ public class RentalService {
         } catch (Exception e) {
             log.error("Failed to return rental: {}", e.getMessage());
             throw new RuntimeException("Failed to return rental: " + e.getMessage());
+        }
+    }
+
+    public RentalConfirmationDto createRental(String token, RentalRequestDto rentalRequest) {
+        String url = backendUrl + "/rentals";
+        HttpEntity<RentalRequestDto> entity = new HttpEntity<>(rentalRequest, createAuthHeaders(token));
+        try {
+            ResponseEntity<RentalConfirmationDto> response =
+                    restTemplate.postForEntity(url, entity, RentalConfirmationDto.class);
+            return response.getBody();
+        } catch (Exception e) {
+            log.error("Failed to create rental: {}", e.getMessage());
+            throw new RuntimeException("Failed to create rental: " + e.getMessage());
         }
     }
 
