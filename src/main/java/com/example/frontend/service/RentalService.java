@@ -52,6 +52,22 @@ public class RentalService {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> getRentalsByCustomer(String token, Integer customerId, int page, int size) {
+        URI uri = UriComponentsBuilder.fromUriString(backendUrl + "/rentals/customer/" + customerId)
+                .queryParam("page", page)
+                .queryParam("size", size)
+                .build().toUri();
+        HttpEntity<?> entity = new HttpEntity<>(createAuthHeaders(token));
+        try {
+            ResponseEntity<Map> response = restTemplate.exchange(uri, HttpMethod.GET, entity, Map.class);
+            return response.getBody();
+        } catch (Exception e) {
+            log.error("Failed to fetch customer rentals: {}", e.getMessage());
+            return Collections.emptyMap();
+        }
+    }
+
     public String returnRental(String token, Integer rentalId) {
         String url = backendUrl + "/rentals/return/" + rentalId;
         HttpEntity<?> entity = new HttpEntity<>(createAuthHeaders(token));
