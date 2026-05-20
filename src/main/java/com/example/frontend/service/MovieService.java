@@ -211,4 +211,16 @@ public class MovieService {
         }
     }
 
+    public boolean createMovie(String token, MovieCreateRequestDto request) {
+        String url = backendUrl + "/movies";
+        HttpEntity<MovieCreateRequestDto> entity = new HttpEntity<>(request, createAuthHeaders(token));
+        try {
+            restTemplate.exchange(url, HttpMethod.POST, entity, Map.class);
+            return true;
+        } catch (Exception e) {
+            log.error("Failed to create movie: {}", e.getMessage());
+            return false;
+        }
+    }
+
 }
