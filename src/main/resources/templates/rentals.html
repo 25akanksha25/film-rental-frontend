@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('CineRental - Rentals')}"></head>
+<body>
+<div class="bg-animation"></div>
+<div class="app-layout">
+    <div th:replace="~{fragments/layout :: sidebar('rentals')}"></div>
+    <main class="main-content">
+        <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h1>📦 Rentals</h1>
+                <p th:if="${customerId != null}" th:text="'Showing rentals for Customer #' + ${customerId}">Filtered</p>
+                <p th:if="${customerId == null}">View and manage active movie rentals</p>
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <form action="/rentals" method="get" class="search-form" th:if="${customerId == null}" style="display:flex; gap: 0.5rem;">
+                    <input type="text" name="search" class="form-control" placeholder="Search movie or user..." th:value="${search}">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                    <a th:if="${search != null && !search.isEmpty()}" href="/rentals" class="btn btn-secondary">Clear</a>
+                </form>
+                <a th:if="${customerId != null}" href="/rentals" class="btn btn-secondary">Show All Active</a>
+            </div>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+        <div class="card">
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                    <tr>
+                        <th>Rental ID</th><th>Movie</th><th>Customer</th>
+                        <th>Rental Date</th><th>Return Date</th><th>Status</th><th>Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${rentalsPage != null && rentalsPage['content'] != null}"
+                        th:each="rental : ${rentalsPage['content']}">
+                        <td th:text="${rental['rentalId']}">1</td>
+                        <td style="color:var(--text-primary);font-weight:600" th:text="${rental['movieTitle']}">Movie</td>
+                        <td th:text="${rental['customerName']}">Customer</td>
+                        <td th:text="${rental['rentalDate']}">Date</td>
+                        <td th:text="${rental['returnDate'] != null} ? ${rental['returnDate']} : '—'">—</td>
+                        <td>
+                            <span class="badge"
+                                  th:classappend="${rental['returned']} ? 'badge-success' : 'badge-warning'"
+                                  th:text="${rental['returned']} ? 'Returned' : 'Active'">Active</span>
+                        </td>
+                        <td>
+                            <form th:if="${!rental['returned']}"
+                                  th:action="@{'/rentals/return/' + ${rental['rentalId']}}"
+                                  method="post" style="display:inline">
+                                <button type="submit" class="btn btn-sm btn-success">↩️ Return</button>
+                            </form>
+                            <span th:if="${rental['returned']}" style="color:var(--text-muted)">—</span>
+
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div th:if="${rentalsPage == null || rentalsPage['content'] == null || rentalsPage['content'].isEmpty()}"
+                 class="empty-state">
+                <div class="icon">📦</div>
+                <p>No active rentals found.</p>
+                <a href="/movies" class="btn btn-outline btn-sm mt-2">Browse Movies to Rent</a>
+            </div>
+        </div>
+
+        <!-- Pagination (max 9 pages visible + Prev/Next) -->
+        <div th:if="${rentalsPage != null && rentalsPage['totalPages'] != null && rentalsPage['totalPages'] > 1}"
+             class="pagination">
+            <a class="page-link" th:classappend="${currentPage == 0} ? 'disabled'"
+               th:href="@{/rentals(page=${currentPage - 1}, size=10, search=${search}, customerId=${customerId})}">← Prev</a>
+
+            <th:block th:with="totalPages=${rentalsPage['totalPages']},
+                               startPage=${currentPage - 4 < 0 ? 0 : (currentPage + 4 >= totalPages ? (totalPages - 9 < 0 ? 0 : totalPages - 9) : currentPage - 4)},
+                               endPage=${startPage + 8 >= totalPages ? totalPages - 1 : startPage + 8}">
+                <th:block th:each="i : ${#numbers.sequence(startPage, endPage)}">
+                    <a class="page-link" th:classappend="${i == currentPage} ? 'active'"
+                       th:href="@{/rentals(page=${i}, size=10, search=${search}, customerId=${customerId})}"
+                       th:text="${i + 1}">1</a>
+                </th:block>
+            </th:block>
+
+            <a class="page-link"
+               th:classappend="${currentPage == rentalsPage['totalPages'] - 1} ? 'disabled'"
+               th:href="@{/rentals(page=${currentPage + 1}, size=10, search=${search}, customerId=${customerId})}">Next →</a>
+        </div>
+    </main>
+</div>
+</body>
+</html>
