@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('CineRental - Dashboard')}"></head>
+<body>
+<div class="bg-animation"></div>
+<div class="app-layout">
+    <div th:replace="~{fragments/layout :: sidebar('dashboard')}"></div>
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1>📊 Dashboard</h1>
+                <p>Welcome back, <strong th:text="${username}">User</strong>! Here's your overview.</p>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon blue">👥</div>
+                <div class="stat-value" th:text="${stats.totalCustomers != null} ? ${stats.totalCustomers} : '0'">0</div>
+                <div class="stat-label">Total Customers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon purple">🎬</div>
+                <div class="stat-value" th:text="${stats.totalMovies != null} ? ${stats.totalMovies} : '0'">0</div>
+                <div class="stat-label">Total Movies</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green">📦</div>
+                <div class="stat-value" th:text="${stats.activeRentals != null} ? ${stats.activeRentals} : '0'">0</div>
+                <div class="stat-label">Active Rentals</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon amber">💰</div>
+                <div class="stat-value" th:text="${stats.totalRevenue != null} ? '$' + ${#numbers.formatDecimal(stats.totalRevenue, 1, 2)} : '$0.00'">$0</div>
+                <div class="stat-label">Total Revenue</div>
+            </div>
+        </div>
+
+        <!-- Recent Rentals -->
+        <div class="card">
+            <div class="card-header">
+                <h3>🎬 Recent Rentals</h3>
+                <a href="/rentals" class="btn btn-sm btn-outline">View All →</a>
+            </div>
+            <div class="card-body">
+                <div th:if="${recentRentals != null && !recentRentals.isEmpty()}">
+                    <div th:each="r : ${recentRentals}" class="recent-rental-item">
+                        <div class="recent-rental-left">
+                            <div class="recent-rental-icon" th:classappend="${r.returned} ? 'rr-returned' : 'rr-active'">
+                                <span th:text="${r.returned} ? '✓' : '🎞'">🎞</span>
+                            </div>
+                            <div>
+                                <div class="recent-rental-title" th:text="${r.movieTitle}">Movie</div>
+                                <div class="recent-rental-meta">
+                                    <span th:text="${r.customerName}">Customer</span>
+                                    <span class="recent-rental-dot">•</span>
+                                    <span th:text="${#temporals.format(r.rentalDate, 'MMM dd, HH:mm')}">date</span>
+                                </div>
+                            </div>
+                        </div>
+                        <span class="badge"
+                              th:classappend="${r.returned} ? 'badge-success' : 'badge-info'"
+                              th:text="${r.returned} ? 'Returned' : 'Active'">Active</span>
+                    </div>
+                </div>
+                <div th:if="${recentRentals == null || recentRentals.isEmpty()}" class="empty-state">
+                    <div class="icon">🎬</div>
+                    <p>No rentals yet — they'll show up here as soon as you create one.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<style>
+    .recent-rental-item {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0.85rem 0; border-bottom: 1px solid var(--border-color);
+    }
+    .recent-rental-item:last-child { border-bottom: none; }
+    .recent-rental-left { display: flex; align-items: center; gap: 0.85rem; }
+    .recent-rental-icon {
+        width: 38px; height: 38px; border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1rem; flex-shrink: 0;
+    }
+    .rr-active   { background: rgba(59,130,246,0.12); color: var(--accent-blue); }
+    .rr-returned { background: rgba(34,197,94,0.12);  color: var(--success); }
+    .recent-rental-title {
+        color: var(--text-primary); font-weight: 600; font-size: 0.95rem;
+        margin-bottom: 0.15rem;
+    }
+    .recent-rental-meta {
+        color: var(--text-secondary); font-size: 0.82rem;
+    }
+    .recent-rental-dot { margin: 0 0.4rem; color: var(--text-muted); }
+</style>
+</body>
+</html>

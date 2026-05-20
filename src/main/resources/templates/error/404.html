@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('CineRental - Page Not Found')}"></head>
+<body>
+<div class="bg-animation"></div>
+
+<div class="notfound-wrapper">
+    <div class="notfound-card">
+        <!-- Floating film-reel illustration -->
+        <div class="reel-wrap">
+            <svg class="reel" viewBox="0 0 120 120" fill="none">
+                <circle cx="60" cy="60" r="55" stroke="currentColor" stroke-width="3" opacity="0.25"/>
+                <circle cx="60" cy="60" r="42" stroke="currentColor" stroke-width="2" opacity="0.5"/>
+                <circle cx="60" cy="60" r="10" fill="currentColor" opacity="0.8"/>
+                <circle cx="60" cy="22" r="7" fill="currentColor" opacity="0.7"/>
+                <circle cx="60" cy="98" r="7" fill="currentColor" opacity="0.7"/>
+                <circle cx="22" cy="60" r="7" fill="currentColor" opacity="0.7"/>
+                <circle cx="98" cy="60" r="7" fill="currentColor" opacity="0.7"/>
+            </svg>
+        </div>
+
+        <h1 class="notfound-code">404</h1>
+        <h2 class="notfound-title">Scene Not Found</h2>
+        <p class="notfound-sub">
+            We searched every reel in the projection room — the page you're looking for
+            isn't here. It may have been moved, renamed, or never existed at all.
+        </p>
+
+        <!-- The URL that was tried -->
+        <div class="notfound-url" th:if="${#httpServletRequest != null}">
+            <span class="notfound-url-label">Requested URL:</span>
+            <code th:text="${#httpServletRequest.requestURI}">/some/missing/path</code>
+        </div>
+
+        <!-- Action buttons -->
+        <div class="notfound-actions">
+            <a href="/dashboard" class="btn btn-primary notfound-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                Go to Dashboard
+            </a>
+            <a href="/movies" class="btn btn-secondary notfound-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></svg>
+                Browse Movies
+            </a>
+        </div>
+
+        <a href="javascript:history.back()" class="notfound-back">← Go back to the previous page</a>
+    </div>
+</div>
+
+<style>
+    .notfound-wrapper {
+        min-height: 100vh;
+        display: flex; align-items: center; justify-content: center;
+        padding: 2rem 1rem;
+    }
+    .notfound-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-lg);
+        padding: 3rem 2.5rem 2.25rem;
+        max-width: 560px; width: 100%;
+        text-align: center;
+        animation: cardIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes cardIn {
+        from { opacity: 0; transform: translateY(12px) scale(0.98); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .reel-wrap { color: var(--accent-primary); margin-bottom: 1.25rem; }
+    .reel {
+        width: 96px; height: 96px;
+        animation: spin 8s linear infinite;
+        filter: drop-shadow(0 4px 12px rgba(99,102,241,0.35));
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .notfound-code {
+        font-size: 5rem; line-height: 1; font-weight: 900;
+        margin: 0 0 0.5rem;
+        background: var(--accent-gradient);
+        -webkit-background-clip: text; background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: -0.04em;
+    }
+    .notfound-title {
+        font-size: 1.5rem; font-weight: 700;
+        color: var(--text-primary); margin: 0 0 0.75rem;
+    }
+    .notfound-sub {
+        color: var(--text-secondary); font-size: 0.95rem;
+        line-height: 1.5; margin: 0 auto 1.75rem; max-width: 420px;
+    }
+
+    .notfound-url {
+        background: var(--bg-primary);
+        border: 1px dashed var(--border-color);
+        border-radius: var(--radius);
+        padding: 0.7rem 1rem; margin-bottom: 1.75rem;
+        font-size: 0.85rem;
+        word-break: break-all; text-align: left;
+    }
+    .notfound-url-label {
+        color: var(--text-muted); font-weight: 600;
+        margin-right: 0.5rem;
+    }
+    .notfound-url code {
+        color: var(--accent-blue);
+        font-family: 'SF Mono', Menlo, Consolas, monospace;
+    }
+
+    .notfound-actions {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+    .notfound-btn {
+        width: 100%; justify-content: center;
+        padding: 0.85rem 1rem;
+    }
+
+    .notfound-back {
+        display: inline-block;
+        color: var(--text-muted); font-size: 0.85rem;
+        text-decoration: none; transition: color 0.15s;
+    }
+    .notfound-back:hover { color: var(--accent-blue); }
+
+    @media (max-width: 480px) {
+        .notfound-actions { grid-template-columns: 1fr; }
+        .notfound-card { padding: 2rem 1.5rem; }
+        .notfound-code { font-size: 4rem; }
+    }
+</style>
+</body>
+</html>
