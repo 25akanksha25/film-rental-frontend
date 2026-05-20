@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('CineRental - Actor Filmography')}"></head>
+<body>
+<div class="bg-animation"></div>
+<div class="app-layout">
+    <div th:replace="~{fragments/layout :: sidebar('actors')}"></div>
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem;flex-wrap:wrap;">
+                    <!-- Conditional back button: returns to the movie details page if user came from there -->
+                    <a th:if="${fromMovie != null}"
+                       th:href="@{'/movies/' + ${fromMovie}}"
+                       class="btn btn-secondary btn-sm">← Back to Movie</a>
+                    <a href="/actors" class="btn btn-secondary btn-sm">← Back to Actors</a>
+                </div>
+                <h1>
+                    🎭
+                    <span th:text="${actor != null ? actor.actorName : 'Actor'}">Actor Name</span>
+                </h1>
+                <p th:if="${actor != null}">
+                    <span class="badge badge-info" th:text="${actor.totalMovies} + ' total movies'">0 movies</span>
+                </p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h3>🎬 Filmography</h3></div>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                    <tr>
+                        <th>ID</th><th>Title</th><th>Year</th><th>Language</th>
+                        <th>Rating</th><th>Length</th><th>Rental Rate</th><th>Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${moviesPage != null && moviesPage['content'] != null}"
+                        th:each="movie : ${moviesPage['content']}">
+                        <td th:text="${movie['filmId']}">1</td>
+                        <td style="color:var(--text-primary);font-weight:600" th:text="${movie['title']}">Title</td>
+                        <td th:text="${movie['releaseYear']}">2006</td>
+                        <td th:text="${movie['language']}">English</td>
+                        <td><span class="badge badge-info" th:text="${movie['rating']}">PG</span></td>
+                        <td th:text="${movie['length']} + ' min'">90 min</td>
+                        <td style="color:var(--success);font-weight:600" th:text="'$' + ${movie['rentalRate']}">$0.99</td>
+                        <td>
+                            <a th:href="@{'/movies/' + ${movie['filmId']} + '?viewOnly=true'}"
+                               class="btn btn-sm btn-outline">👁️ View</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div th:if="${moviesPage == null || moviesPage['content'] == null || moviesPage['content'].isEmpty()}" class="empty-state">
+                <div class="icon">🎬</div><p>This actor has no films listed.</p>
+            </div>
+        </div>
+
+        <!-- Pagination (same format as the rest of the app) -->
+        <div th:if="${moviesPage != null && moviesPage['totalPages'] != null && moviesPage['totalPages'] > 1}" class="pagination">
+            <a class="page-link" th:classappend="${currentPage == 0} ? 'disabled'"
+               th:href="@{'/actors/' + ${actorId} + '/movies'(page=${currentPage - 1}, size=10, fromMovie=${fromMovie})}">← Prev</a>
+
+            <th:block th:with="totalPages=${moviesPage['totalPages']},
+                               startPage=${currentPage - 4 < 0 ? 0 : (currentPage + 4 >= totalPages ? (totalPages - 9 < 0 ? 0 : totalPages - 9) : currentPage - 4)},
+                               endPage=${startPage + 8 >= totalPages ? totalPages - 1 : startPage + 8}">
+                <th:block th:each="i : ${#numbers.sequence(startPage, endPage)}">
+                    <a class="page-link" th:classappend="${i == currentPage} ? 'active'"
+                       th:href="@{'/actors/' + ${actorId} + '/movies'(page=${i}, size=10, fromMovie=${fromMovie})}"
+                       th:text="${i + 1}">1</a>
+                </th:block>
+            </th:block>
+
+            <a class="page-link" th:classappend="${currentPage == moviesPage['totalPages'] - 1} ? 'disabled'"
+               th:href="@{'/actors/' + ${actorId} + '/movies'(page=${currentPage + 1}, size=10, fromMovie=${fromMovie})}">Next →</a>
+        </div>
+    </main>
+</div>
+</body>
+</html>
