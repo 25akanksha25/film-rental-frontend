@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('CineRental - Inventory')}"></head>
+<body>
+<div class="bg-animation"></div>
+<div class="app-layout">
+    <div th:replace="~{fragments/layout :: sidebar('inventory')}"></div>
+    <main class="main-content">
+
+        <!-- Flash messages -->
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <div class="page-header">
+            <div>
+                <h1>📦 Inventory Management</h1>
+                <p>View total, rented, and available copies for your store.</p>
+            </div>
+            <div style="display:flex;gap:0.75rem;">
+                <a href="/movies" class="btn btn-secondary">Browse Movies</a>
+                <button class="btn btn-primary" onclick="openAddMovieModal()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Add New Movie
+                </button>
+            </div>
+        </div>
+
+        <!-- Search -->
+        <form th:action="@{/inventory}" method="get" class="search-bar">
+            <input type="text" name="search" class="form-control" placeholder="Search inventory by movie title..." th:value="${search}"/>
+            <button type="submit" class="btn btn-primary">🔍 Search</button>
+            <a href="/inventory" class="btn btn-secondary">Clear</a>
+        </form>
+
+        <div class="card">
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                    <tr>
+                        <th>Film ID</th>
+                        <th>Movie Title</th>
+                        <th class="text-center">Total Copies</th>
+                        <th class="text-center">Rented Copies</th>
+                        <th class="text-center">Available Copies</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${inventoryPage != null && inventoryPage['content'] != null}" th:each="inv : ${inventoryPage['content']}">
+                        <td th:text="${inv['filmId']}">1</td>
+                        <td style="font-weight:600; color:var(--text-primary)" th:text="${inv['movieTitle']}">Movie</td>
+                        <td class="text-center" th:text="${inv['totalCopies']}">10</td>
+                        <td class="text-center" style="color:var(--danger)" th:text="${inv['rentedCopies']}">2</td>
+                        <td class="text-center" style="font-weight:700; color:var(--success)" th:text="${inv['availableCopies']}">8</td>
+                        <td>
+                            <span class="badge" th:classappend="${inv['availableCopies'] > 0} ? 'badge-success' : 'badge-danger'"
+                                  th:text="${inv['availableCopies'] > 0} ? 'In Stock' : 'Out of Stock'">In Stock</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div th:if="${inventoryPage == null || inventoryPage['content'] == null || inventoryPage['content'].isEmpty()}" class="empty-state">
+                <div class="icon">📦</div>
+                <p>No inventory found for your store.</p>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div th:if="${inventoryPage != null && inventoryPage['page'] != null && inventoryPage['page']['totalPages'] > 1}" class="pagination">
+            <a class="page-link" th:classappend="${currentPage == 0} ? 'disabled'"
+               th:href="@{/inventory(page=${currentPage - 1}, size=10, search=${search})}">← Prev</a>
+
+            <th:block th:with="totalPages=${inventoryPage['page']['totalPages']},
+                               startPage=${currentPage - 4 < 0 ? 0 : (currentPage + 4 >= totalPages ? (totalPages - 9 < 0 ? 0 : totalPages - 9) : currentPage - 4)},
+                               endPage=${startPage + 8 >= totalPages ? totalPages - 1 : startPage + 8}">
+                <th:block th:each="i : ${#numbers.sequence(startPage, endPage)}">
+                    <a class="page-link" th:classappend="${i == currentPage} ? 'active'"
+                       th:href="@{/inventory(page=${i}, size=10, search=${search})}"
+                       th:text="${i + 1}">1</a>
+                </th:block>
+            </th:block>
+
+            <a class="page-link" th:classappend="${currentPage == inventoryPage['page']['totalPages'] - 1} ? 'disabled'"
+               th:href="@{/inventory(page=${currentPage + 1}, size=10, search=${search})}">Next →</a>
+        </div>
+    </main>
+</div>
+
+<!-- ===================== ADD MOVIE MODAL ===================== -->
+<div id="addMovieModal" class="modal-overlay" onclick="handleOverlayClick(event)">
+    <div class="modal-panel">
+        <div class="modal-header">
+            <div>
+                <h2 class="modal-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent-blue)"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="12" y1="2" x2="12" y2="22"/></svg>
+                    Add New Movie
+                </h2>
+                <p class="modal-subtitle">Fill in the details to add a new film to your store inventory.</p>
+            </div>
+            <button class="modal-close" onclick="closeAddMovieModal()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+
+        <form id="addMovieForm" th:action="@{/inventory/add-movie}" method="post" class="modal-body">
+
+            <!-- ── Section: Basic Info ── -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    Basic Information
+                </div>
+                <div class="form-grid-2">
+                    <div class="form-group" style="grid-column:1/-1">
+                        <label>Movie Title <span class="required">*</span></label>
+                        <input type="text" name="title" class="form-control" placeholder="e.g. The Dark Knight" required />
+                    </div>
+                    <div class="form-group" style="grid-column:1/-1">
+                        <label>Description</label>
+                        <textarea name="description" class="form-control" rows="3" placeholder="Brief synopsis of the movie..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Release Year</label>
+                        <input type="number" name="releaseYear" class="form-control" placeholder="e.g. 2024" min="1900" max="2099" />
+                    </div>
+                    <div class="form-group">
+                        <label>Rating <span class="required">*</span></label>
+                        <select name="rating" class="form-control" required>
+                            <option value="" disabled selected>Select rating</option>
+                            <option value="G">G — General Audiences</option>
+                            <option value="PG">PG — Parental Guidance</option>
+                            <option value="PG-13">PG-13 — Parents Strongly Cautioned</option>
+                            <option value="R">R — Restricted</option>
+                            <option value="NC-17">NC-17 — Adults Only</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Section: Technical Details ── -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    Technical Details
+                </div>
+                <div class="form-grid-3">
+                    <div class="form-group">
+                        <label>Language <span class="required">*</span></label>
+                        <select name="languageId" class="form-control" required>
+                            <option value="" disabled selected>Select language</option>
+                            <option th:each="lang : ${languages}"
+                                    th:value="${lang.languageId}"
+                                    th:text="${lang.name}">English</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Length (minutes)</label>
+                        <input type="number" name="length" class="form-control" placeholder="e.g. 120" min="1" />
+                    </div>
+                    <div class="form-group">
+                        <label>Rental Duration (days) <span class="required">*</span></label>
+                        <input type="number" name="rentalDuration" class="form-control" placeholder="e.g. 3" min="1" max="30" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Rental Rate ($) <span class="required">*</span></label>
+                        <input type="number" name="rentalRate" class="form-control" placeholder="e.g. 4.99" step="0.01" min="0" required />
+                    </div>
+                    <div class="form-group">
+                        <label>Replacement Cost ($)</label>
+                        <input type="number" name="replacementCost" class="form-control" placeholder="e.g. 19.99" step="0.01" min="0" />
+                    </div>
+                    <div class="form-group">
+                        <label>Copies to Add <span class="required">*</span></label>
+                        <input type="number" name="copies" class="form-control" value="1" min="1" max="100" required />
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top:0.25rem;">
+                    <label>Special Features</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-item">
+                            <input type="checkbox" class="sf-check" value="Trailers" /> Trailers
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" class="sf-check" value="Commentaries" /> Commentaries
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" class="sf-check" value="Deleted Scenes" /> Deleted Scenes
+                        </label>
+                        <label class="checkbox-item">
+                            <input type="checkbox" class="sf-check" value="Behind the Scenes" /> Behind the Scenes
+                        </label>
+                    </div>
+                    <input type="hidden" name="specialFeatures" id="specialFeaturesInput" />
+                </div>
+            </div>
+
+            <!-- ── Section: Categories ── -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                    Categories
+                </div>
+                <div class="category-grid">
+                    <label class="checkbox-item" th:each="cat : ${categories}">
+                        <input type="checkbox" class="cat-check"
+                               th:value="${cat.categoryId}"
+                               th:data-name="${cat.name}" />
+                        <span th:text="${cat.name}">Action</span>
+                    </label>
+                </div>
+                <!-- Hidden inputs for selected categoryIds submitted via form -->
+                <div id="categoryHiddenInputs"></div>
+            </div>
+
+            <!-- ── Section: Actors ── -->
+            <div class="form-section">
+                <div class="form-section-title">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    Actors
+                    <span id="actorCount" class="actor-count">0 selected</span>
+                </div>
+                <p class="actor-hint">
+                    💡 Search and click to add existing actors. If a cast member isn't in our database, use
+                    the <strong>“+ Add new actor”</strong> button below — they'll be created when the movie is saved.
+                </p>
+                <div class="actor-search-box">
+                    <div style="position:relative;">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute;left:0.85rem;top:50%;transform:translateY(-50%);color:var(--text-muted)"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                        <input type="text" id="actorSearchInput" class="form-control"
+                               placeholder="Search actors by name (click to see all)..."
+                               style="padding-left:2.5rem;"
+                               oninput="filterActors(this.value)"
+                               onfocus="onActorInputFocus()" />
+                    </div>
+                    <div id="actorDropdown" class="actor-dropdown"></div>
+                </div>
+
+                <!-- Inline "add a brand-new actor" form -->
+                <div class="new-actor-block">
+                    <button type="button" class="btn btn-sm btn-outline new-actor-toggle"
+                            onclick="toggleNewActorForm()">
+                        <span id="newActorToggleLabel">＋ Add new actor (not in the list)</span>
+                    </button>
+                    <div id="newActorForm" class="new-actor-form" style="display:none;">
+                        <input type="text" id="newActorFirst" class="form-control" placeholder="First name" maxlength="45"/>
+                        <input type="text" id="newActorLast"  class="form-control" placeholder="Last name"  maxlength="45"/>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="addNewActor()">Add</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="cancelNewActor()">Cancel</button>
+                    </div>
+                </div>
+
+                <div id="selectedActorsTags" class="actor-tags"></div>
+                <div id="actorHiddenInputs"></div>
+                <div id="newActorHiddenInputs"></div>
+            </div>
+
+        </form>
+
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeAddMovieModal()">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="submitMovieForm()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Save Movie
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<style>
+    /* Modal overlay */
+    .modal-overlay {
+        display: none;
+        position: fixed; inset: 0; z-index: 1000;
+        background: rgba(15, 20, 40, 0.55);
+        backdrop-filter: blur(4px);
+        align-items: center; justify-content: center;
+        padding: 1.5rem;
+        overflow-y: auto;
+    }
+    .modal-overlay.open { display: flex; }
+
+    /* Modal panel */
+    .modal-panel {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        box-shadow: 0 25px 60px rgba(0,0,0,0.18);
+        width: 100%; max-width: 780px;
+        max-height: 92vh;
+        display: flex; flex-direction: column;
+        animation: modalIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes modalIn {
+        from { opacity: 0; transform: scale(0.94) translateY(16px); }
+        to   { opacity: 1; transform: scale(1)    translateY(0);    }
+    }
+
+    .modal-header {
+        display: flex; align-items: flex-start; justify-content: space-between;
+        padding: 1.5rem 1.75rem 1.25rem;
+        border-bottom: 1px solid var(--border-color);
+        flex-shrink: 0;
+    }
+    .modal-title {
+        font-size: 1.2rem; font-weight: 800; color: var(--text-primary);
+        display: flex; align-items: center; gap: 0.6rem; margin: 0;
+    }
+    .modal-subtitle { font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.3rem; }
+    .modal-close {
+        background: var(--bg-primary); border: 1px solid var(--border-color);
+        border-radius: 8px; width: 36px; height: 36px;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer; transition: var(--transition); flex-shrink: 0; margin-left: 1rem;
+        color: var(--text-secondary);
+    }
+    .modal-close:hover { background: #fee2e2; border-color: #fca5a5; color: var(--danger); }
+
+    .modal-body {
+        padding: 1.5rem 1.75rem;
+        overflow-y: auto; flex: 1;
+    }
+    .modal-footer {
+        padding: 1.25rem 1.75rem;
+        border-top: 1px solid var(--border-color);
+        display: flex; justify-content: flex-end; gap: 0.75rem;
+        flex-shrink: 0; background: var(--bg-primary);
+        border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    }
+
+    /* Form sections */
+    .form-section {
+        background: var(--bg-primary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius);
+        padding: 1.25rem 1.4rem;
+        margin-bottom: 1.25rem;
+    }
+    .form-section:last-of-type { margin-bottom: 0; }
+    .form-section-title {
+        font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.8px; color: var(--text-secondary);
+        margin-bottom: 1rem;
+        display: flex; align-items: center; gap: 0.4rem;
+    }
+    .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1rem; }
+    .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0 1rem; }
+    @media (max-width: 640px) {
+        .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; }
+    }
+    .required { color: var(--danger); }
+
+    /* Checkbox group (special features) */
+    .checkbox-group {
+        display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.5rem;
+    }
+    .checkbox-item {
+        display: flex; align-items: center; gap: 0.4rem;
+        font-size: 0.875rem; color: var(--text-primary);
+        cursor: pointer; padding: 0.45rem 0.9rem;
+        background: var(--bg-secondary); border: 1px solid var(--border-color);
+        border-radius: 20px; transition: var(--transition); user-select: none;
+    }
+    .checkbox-item:hover { border-color: var(--accent-blue); }
+    .checkbox-item input[type=checkbox] { accent-color: var(--accent-blue); width: 14px; height: 14px; }
+    .checkbox-item input[type=checkbox]:checked + span,
+    .checkbox-item:has(input:checked) {
+        color: var(--accent-blue); font-weight: 600; border-color: var(--accent-blue);
+        background: rgba(59,130,246,0.06);
+    }
+
+    /* Category grid */
+    .category-grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.5rem;
+    }
+
+    /* Actor count badge in section title */
+    .actor-count {
+        margin-left: auto;
+        background: rgba(59,130,246,0.12);
+        color: var(--accent-blue);
+        padding: 0.15rem 0.6rem;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+    }
+    .actor-hint {
+        font-size: 0.78rem;
+        color: var(--text-muted);
+        margin-bottom: 0.75rem;
+        background: rgba(99,102,241,0.06);
+        border-left: 3px solid var(--accent-blue);
+        padding: 0.5rem 0.75rem;
+        border-radius: 4px;
+    }
+    .actor-empty {
+        padding: 0.85rem 1rem;
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-align: center;
+    }
+
+    /* Inline "create new actor" block — shown below the search dropdown */
+    .new-actor-block { margin: 0.4rem 0 0.75rem; }
+    .new-actor-toggle { font-size: 0.78rem; }
+    .new-actor-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto auto;
+        gap: 0.5rem;
+        margin-top: 0.6rem;
+        padding: 0.65rem;
+        background: var(--bg-secondary);
+        border: 1px dashed var(--border-color);
+        border-radius: var(--radius);
+    }
+    .new-actor-form .form-control { padding: 0.5rem 0.75rem; font-size: 0.85rem; }
+    @media (max-width: 540px) {
+        .new-actor-form { grid-template-columns: 1fr; }
+    }
+
+    /* Visual marker for actors created inline (not yet in DB) */
+    .actor-tag.is-new {
+        background: rgba(34,197,94,0.10);
+        border-color: rgba(34,197,94,0.30);
+        color: #15803d;
+    }
+    .actor-tag .new-badge {
+        background: #16a34a;
+        color: #fff;
+        font-size: 0.62rem;
+        font-weight: 700;
+        padding: 0.05rem 0.4rem;
+        border-radius: 8px;
+        letter-spacing: 0.4px;
+        margin-right: 0.25rem;
+    }
+
+    /* Actor search */
+    .actor-search-box { position: relative; margin-bottom: 0.75rem; }
+    .actor-dropdown {
+        position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 50;
+        background: var(--bg-card); border: 1px solid var(--border-color);
+        border-radius: var(--radius); box-shadow: var(--shadow-lg);
+        max-height: 220px; overflow-y: auto; display: none;
+    }
+    .actor-dropdown.open { display: block; }
+    .actor-option {
+        padding: 0.6rem 1rem; font-size: 0.875rem; cursor: pointer;
+        display: flex; align-items: center; justify-content: space-between;
+        transition: background 0.15s;
+    }
+    .actor-option:hover { background: var(--bg-primary); }
+    .actor-option.selected { background: rgba(59,130,246,0.07); color: var(--accent-blue); font-weight: 500; }
+    .actor-option .actor-id { font-size: 0.75rem; color: var(--text-muted); }
+
+    /* Actor tags */
+    .actor-tags {
+        display: flex; flex-wrap: wrap; gap: 0.5rem; min-height: 36px;
+    }
+    .actor-tag {
+        display: inline-flex; align-items: center; gap: 0.35rem;
+        background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.25);
+        color: #1d4ed8; border-radius: 20px;
+        padding: 0.3rem 0.7rem 0.3rem 0.85rem;
+        font-size: 0.8rem; font-weight: 500;
+    }
+    .actor-tag button {
+        background: none; border: none; cursor: pointer; padding: 0; line-height: 1;
+        color: #3b82f6; font-size: 1rem; display: flex; align-items: center;
+        transition: color 0.15s;
+    }
+    .actor-tag button:hover { color: var(--danger); }
+
+    textarea.form-control { resize: vertical; min-height: 80px; }
+</style>
+
+<script th:inline="javascript">
+    /* ── All actors from server ── */
+    const ALL_ACTORS = /*[[${actors}]]*/ [];
+    let selectedActors = {}; // { actorId: actorName }  — existing actors picked from search
+    let newActors = [];       // [{ firstName, lastName }] — brand-new actors created inline
+
+    /* ── Modal open / close ── */
+    function openAddMovieModal() {
+        document.getElementById('addMovieModal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeAddMovieModal() {
+        document.getElementById('addMovieModal').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+    function handleOverlayClick(e) {
+        if (e.target === document.getElementById('addMovieModal')) closeAddMovieModal();
+    }
+
+    /* ── Actor search / dropdown ── */
+    // Open dropdown on focus even without typing — shows top actors so the staff
+    // sees a list immediately and understands they can keep picking.
+    function onActorInputFocus() {
+        const value = document.getElementById('actorSearchInput').value;
+        if (!value.trim()) {
+            renderDropdown(ALL_ACTORS.slice(0, 30));
+        } else {
+            filterActors(value);
+        }
+    }
+
+    function filterActors(query) {
+        const dd = document.getElementById('actorDropdown');
+        if (!query.trim()) {
+            // Empty query → show top 30 (still useful)
+            renderDropdown(ALL_ACTORS.slice(0, 30));
+            return;
+        }
+        const q = query.toLowerCase();
+        const matches = ALL_ACTORS.filter(a => a.actorName.toLowerCase().includes(q)).slice(0, 30);
+        if (!matches.length) {
+            dd.innerHTML = '<div class="actor-empty">No actors match "' + escHtml(query) + '"</div>';
+            dd.classList.add('open');
+            return;
+        }
+        renderDropdown(matches);
+    }
+
+    function renderDropdown(actors) {
+        const dd = document.getElementById('actorDropdown');
+        dd.innerHTML = actors.map(a => {
+            const sel = selectedActors[a.actorId] ? 'selected' : '';
+            return `<div class="actor-option ${sel}" data-id="${a.actorId}" data-name="${a.actorName}" onclick="toggleActor(${a.actorId},'${escHtml(a.actorName)}')">
+                        <span>${escHtml(a.actorName)}</span>
+                        <span class="actor-id">#${a.actorId}${selectedActors[a.actorId] ? ' ✓ selected' : ''}</span>
+                    </div>`;
+        }).join('');
+        dd.classList.add('open');
+    }
+
+    function toggleActor(id, name) {
+        if (selectedActors[id]) {
+            removeActor(id);
+        } else {
+            selectedActors[id] = name;
+            renderActorTags();
+            renderActorHiddenInputs();
+            updateActorCount();
+            // Clear search and re-focus so the next actor is one keystroke away
+            const input = document.getElementById('actorSearchInput');
+            input.value = '';
+            renderDropdown(ALL_ACTORS.slice(0, 30));
+            input.focus();
+        }
+    }
+
+    function removeActor(id) {
+        delete selectedActors[id];
+        renderActorTags();
+        renderActorHiddenInputs();
+        updateActorCount();
+        filterActors(document.getElementById('actorSearchInput').value);
+    }
+
+    function renderActorTags() {
+        const container = document.getElementById('selectedActorsTags');
+        const existing = Object.entries(selectedActors).map(([id, name]) =>
+            `<span class="actor-tag">${escHtml(name)}<button type="button" onclick="removeActor(${id})" title="Remove">✕</button></span>`
+        );
+        const fresh = newActors.map((a, idx) =>
+            `<span class="actor-tag is-new"><span class="new-badge">NEW</span>${escHtml(a.firstName + ' ' + a.lastName)}<button type="button" onclick="removeNewActor(${idx})" title="Remove">✕</button></span>`
+        );
+        container.innerHTML = [...existing, ...fresh].join('');
+    }
+
+    function updateActorCount() {
+        const total = Object.keys(selectedActors).length + newActors.length;
+        const el = document.getElementById('actorCount');
+        if (el) el.textContent = total + ' selected';
+    }
+
+    /* ── Inline new-actor creation ── */
+    function toggleNewActorForm() {
+        const form = document.getElementById('newActorForm');
+        const showing = form.style.display !== 'none';
+        form.style.display = showing ? 'none' : 'grid';
+        if (!showing) document.getElementById('newActorFirst').focus();
+    }
+
+    function cancelNewActor() {
+        document.getElementById('newActorFirst').value = '';
+        document.getElementById('newActorLast').value = '';
+        document.getElementById('newActorForm').style.display = 'none';
+    }
+
+    function addNewActor() {
+        const firstEl = document.getElementById('newActorFirst');
+        const lastEl  = document.getElementById('newActorLast');
+        const first = firstEl.value.trim();
+        const last  = lastEl.value.trim();
+        if (!first || !last) {
+            alert('Please enter both first and last name for the new actor.');
+            return;
+        }
+        newActors.push({ firstName: first, lastName: last });
+        firstEl.value = '';
+        lastEl.value = '';
+        renderActorTags();
+        renderNewActorHiddenInputs();
+        updateActorCount();
+        firstEl.focus();
+    }
+
+    function removeNewActor(idx) {
+        newActors.splice(idx, 1);
+        renderActorTags();
+        renderNewActorHiddenInputs();
+        updateActorCount();
+    }
+
+    function renderNewActorHiddenInputs() {
+        // Spring binds form fields named newActors[i].firstName / newActors[i].lastName
+        // into List<NewActorDto> newActors on MovieCreateRequestDto.
+        const container = document.getElementById('newActorHiddenInputs');
+        container.innerHTML = newActors.map((a, idx) =>
+            `<input type="hidden" name="newActors[${idx}].firstName" value="${escHtml(a.firstName)}" />` +
+            `<input type="hidden" name="newActors[${idx}].lastName"  value="${escHtml(a.lastName)}" />`
+        ).join('');
+    }
+
+    function renderActorHiddenInputs() {
+        const container = document.getElementById('actorHiddenInputs');
+        container.innerHTML = Object.keys(selectedActors).map(id =>
+            `<input type="hidden" name="actorIds" value="${id}" />`
+        ).join('');
+    }
+
+    /* ── Category checkboxes → hidden inputs ── */
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.cat-check').forEach(cb => {
+            cb.addEventListener('change', syncCategoryInputs);
+        });
+        document.querySelectorAll('.sf-check').forEach(cb => {
+            cb.addEventListener('change', syncSpecialFeatures);
+        });
+
+        /* Close dropdown when clicking outside */
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('.actor-search-box')) {
+                document.getElementById('actorDropdown').classList.remove('open');
+            }
+        });
+    });
+
+    function syncCategoryInputs() {
+        const container = document.getElementById('categoryHiddenInputs');
+        const checked = [...document.querySelectorAll('.cat-check:checked')];
+        container.innerHTML = checked.map(cb =>
+            `<input type="hidden" name="categoryIds" value="${cb.value}" />`
+        ).join('');
+    }
+
+    function syncSpecialFeatures() {
+        const checked = [...document.querySelectorAll('.sf-check:checked')].map(cb => cb.value);
+        document.getElementById('specialFeaturesInput').value = checked.join(',');
+    }
+
+    /* ── Submit ── */
+    function submitMovieForm() {
+        syncCategoryInputs();
+        syncSpecialFeatures();
+        renderActorHiddenInputs();
+        renderNewActorHiddenInputs();
+        const form = document.getElementById('addMovieForm');
+        if (!form.checkValidity()) { form.reportValidity(); return; }
+        form.submit();
+    }
+
+    function escHtml(s) {
+        return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+</script>
+
+</body>
+</html>

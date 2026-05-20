@@ -35,7 +35,7 @@ public class ActorService {
 
     @SuppressWarnings("unchecked")
     public Map<String, Object> getAllActors(String token, int page, int size) {
-        URI uri = UriComponentsBuilder.fromHttpUrl(backendUrl + "/actors")
+        URI uri = UriComponentsBuilder.fromUriString(backendUrl + "/actors")
                 .queryParam("page", page)
                 .queryParam("size", size)
                 .build().toUri();
@@ -51,7 +51,7 @@ public class ActorService {
 
     @SuppressWarnings("unchecked")
     public Map<String, Object> searchActors(String token, String name, int page, int size) {
-        URI uri = UriComponentsBuilder.fromHttpUrl(backendUrl + "/actors/search")
+        URI uri = UriComponentsBuilder.fromUriString(backendUrl + "/actors/search")
                 .queryParam("name", name)
                 .queryParam("page", page)
                 .queryParam("size", size)
@@ -80,7 +80,7 @@ public class ActorService {
 
     @SuppressWarnings("unchecked")
     public Map<String, Object> getActorMovies(String token, Integer actorId, int page, int size) {
-        URI uri = UriComponentsBuilder.fromHttpUrl(backendUrl + "/actors/" + actorId + "/movies")
+        URI uri = UriComponentsBuilder.fromUriString(backendUrl + "/actors/" + actorId + "/movies")
                 .queryParam("page", page)
                 .queryParam("size", size)
                 .build().toUri();
