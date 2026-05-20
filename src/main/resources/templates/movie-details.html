@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('CineRental - Movie Details')}"></head>
+<body>
+<div class="bg-animation"></div>
+<div class="app-layout">
+    <div th:replace="~{fragments/layout :: sidebar('movies')}"></div>
+    <main class="main-content">
+        <div class="page-header">
+            <div><a href="/movies" class="btn btn-secondary btn-sm">← Back to Movies</a></div>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+        <div th:if="${movie != null}">
+
+            <!-- Hero -->
+            <div class="movie-hero">
+                <div class="d-flex justify-between align-center flex-wrap" style="gap:1rem">
+                    <div>
+                        <h1 th:text="${movie.title}">Movie Title</h1>
+                        <p style="color:var(--text-secondary);max-width:700px;margin-top:0.5rem" th:text="${movie.description}">Description</p>
+                    </div>
+                    <a th:if="${!viewOnly}"
+                       th:href="@{'/movies/' + ${movie.filmId} + '/rent'}" class="btn btn-primary" style="padding:0.9rem 2rem;font-size:1rem;white-space:nowrap;">
+                        🎬 Rent This Movie
+                    </a>
+                    <span th:if="${viewOnly}" class="badge badge-info" style="padding:0.6rem 1.2rem;font-size:0.85rem;">
+                        👁️ View-only
+                    </span>
+                </div>
+                <div class="movie-meta">
+                    <div class="meta-item">🌐 <span th:text="${movie.language}">English</span></div>
+                    <div class="meta-item">⭐ <span th:text="${movie.rating}">PG</span></div>
+                    <div class="meta-item">⏱️ <span th:text="${movie.length} + ' min'">90 min</span></div>
+                    <div class="meta-item" th:if="${movie.releaseYear}">📅 <span th:text="${movie.releaseYear}">2006</span></div>
+                    <div class="meta-item">💰 <span th:text="'$' + ${movie.rentalRate}">$0.99</span></div>
+                    <div th:if="${inventory != null}" class="meta-item">📦 <span th:text="${inventory.totalCopies} + ' copies available'">0 copies</span></div>
+                </div>
+            </div>
+
+            <!-- Overview card — full details table -->
+            <div class="card" style="margin-top:1.5rem;">
+                <div class="card-header"><h3>📋 Overview</h3></div>
+                <div class="card-body">
+                    <div class="overview-grid">
+                        <div class="overview-row">
+                            <div class="overview-label">Title</div>
+                            <div class="overview-value" th:text="${movie.title}">Title</div>
+                        </div>
+                        <div class="overview-row" th:if="${movie.description}">
+                            <div class="overview-label">Description</div>
+                            <div class="overview-value" th:text="${movie.description}">—</div>
+                        </div>
+                        <div class="overview-row">
+                            <div class="overview-label">Release Year</div>
+                            <div class="overview-value" th:text="${movie.releaseYear} ?: '—'">2006</div>
+                        </div>
+                        <div class="overview-row">
+                            <div class="overview-label">Language</div>
+                            <div class="overview-value" th:text="${movie.language}">English</div>
+                        </div>
+                        <div class="overview-row">
+                            <div class="overview-label">Rating</div>
+                            <div class="overview-value">
+                                <span class="badge badge-info" th:text="${movie.rating}">PG</span>
+                            </div>
+                        </div>
+                        <div class="overview-row">
+                            <div class="overview-label">Length</div>
+                            <div class="overview-value" th:text="${movie.length} + ' minutes'">86 min</div>
+                        </div>
+                        <div class="overview-row">
+                            <div class="overview-label">Rental Duration</div>
+                            <div class="overview-value" th:text="${movie.rentalDuration} != null ? ${movie.rentalDuration} + ' days' : '—'">3 days</div>
+                        </div>
+                        <div class="overview-row">
+                            <div class="overview-label">Rental Rate</div>
+                            <div class="overview-value" style="color:var(--success);font-weight:700"
+                                 th:text="'$' + ${movie.rentalRate}">$0.99</div>
+                        </div>
+                        <div class="overview-row" th:if="${movie.replacementCost}">
+                            <div class="overview-label">Replacement Cost</div>
+                            <div class="overview-value" th:text="'$' + ${movie.replacementCost}">$19.99</div>
+                        </div>
+                        <div class="overview-row" th:if="${movie.specialFeatures}">
+                            <div class="overview-label">Special Features</div>
+                            <div class="overview-value">
+                                <span th:each="feat, st : ${#strings.arraySplit(movie.specialFeatures, ',')}"
+                                      class="tag" style="margin-right:0.4rem" th:text="${#strings.trim(feat)}">Trailers</span>
+                            </div>
+                        </div>
+                        <div th:if="${inventory != null}" class="overview-row">
+                            <div class="overview-label">Inventory at your store</div>
+                            <div class="overview-value">
+                                <strong th:text="${inventory.totalCopies}">0</strong> total ·
+                                <span style="color:var(--danger)" th:text="${inventory.rentedCopies} + ' rented'">0 rented</span> ·
+                                <span style="color:var(--success);font-weight:700"
+                                      th:text="${inventory.availableCopies} + ' available'">0 available</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cast + Categories -->
+            <div class="grid-2" style="margin-top:1.5rem;">
+                <div class="card">
+                    <div class="card-header"><h3>🎭 Cast</h3></div>
+                    <div class="card-body">
+                        <div th:if="${movie.actors != null && !movie.actors.isEmpty()}" class="tag-list">
+                            <a th:each="actor : ${movie.actors}"
+                               th:href="@{'/actors/' + ${actor.actorId} + '/movies'(fromMovie=${movie.filmId})}"
+                               class="tag tag-link"
+                               th:title="'See all films featuring ' + ${actor.name}"
+                               th:text="${actor.name}">Actor</a>
+                        </div>
+                        <div th:if="${movie.actors == null || movie.actors.isEmpty()}" class="empty-state">
+                            <p>No actors listed.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header"><h3>🏷️ Categories</h3></div>
+                    <div class="card-body">
+                        <div th:if="${movie.categories != null && !movie.categories.isEmpty()}" class="tag-list">
+                            <span th:each="cat : ${movie.categories}" class="tag" th:text="${cat}">Category</span>
+                        </div>
+                        <div th:if="${movie.categories == null || movie.categories.isEmpty()}" class="empty-state">
+                            <p>No categories listed.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${movie == null}" class="empty-state">
+            <div class="icon">❌</div><p>Movie not found.</p>
+        </div>
+    </main>
+</div>
+
+<style>
+    .overview-grid { display: flex; flex-direction: column; gap: 0.85rem; }
+    .overview-row {
+        display: grid;
+        grid-template-columns: 180px 1fr;
+        gap: 1rem;
+        padding-bottom: 0.85rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .overview-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .overview-label {
+        color: var(--text-muted);
+        font-size: 0.82rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        padding-top: 0.15rem;
+    }
+    .overview-value { color: var(--text-primary); font-size: 0.95rem; line-height: 1.5; }
+    @media (max-width: 600px) {
+        .overview-row { grid-template-columns: 1fr; gap: 0.25rem; }
+    }
+    /* Cast names are clickable — link styling without underlines */
+    .tag-link {
+        text-decoration: none;
+        cursor: pointer;
+        transition: background 0.15s, transform 0.1s;
+    }
+    .tag-link:hover {
+        background: rgba(99,102,241,0.18);
+        transform: translateY(-1px);
+    }
+</style>
+</body>
+</html>

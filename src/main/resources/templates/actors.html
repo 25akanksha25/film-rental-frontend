@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('CineRental - Actors')}"></head>
+<body>
+<div class="bg-animation"></div>
+<div class="app-layout">
+    <div th:replace="~{fragments/layout :: sidebar('actors')}"></div>
+    <main class="main-content">
+        <div class="page-header">
+            <div><h1>🎭 Actors</h1><p>Browse the actor catalog</p></div>
+        </div>
+
+        <form th:action="@{/actors}" method="get" class="search-bar">
+            <input type="text" name="search" class="form-control" placeholder="Search by actor name..." th:value="${search}"/>
+            <button type="submit" class="btn btn-primary">🔍 Search</button>
+            <a href="/actors" class="btn btn-secondary">Clear</a>
+        </form>
+
+        <div class="card">
+            <div class="table-container">
+                <table class="data-table">
+                    <thead><tr><th>ID</th><th>Actor Name</th><th>Total Movies</th><th>Action</th></tr></thead>
+                    <tbody>
+                    <tr th:if="${actorsPage != null && actorsPage['content'] != null}"
+                        th:each="actor : ${actorsPage['content']}">
+                        <td th:text="${actor['actorId']}">1</td>
+                        <td style="color:var(--text-primary);font-weight:600" th:text="${actor['actorName']}">Name</td>
+                        <td><span class="badge badge-info" th:text="${actor['totalMovies']} + ' movies'">0 movies</span></td>
+                        <td>
+                            <a th:href="@{'/actors/' + ${actor['actorId']} + '/movies'}"
+                               class="btn btn-sm btn-outline">👁️ View Movies</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div th:if="${actorsPage == null || actorsPage['content'] == null || actorsPage['content'].isEmpty()}" class="empty-state">
+                <div class="icon">🎭</div><p>No actors found.</p>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div th:if="${actorsPage != null && actorsPage['totalPages'] != null && actorsPage['totalPages'] > 1}" class="pagination">
+            <a class="page-link" th:classappend="${currentPage == 0} ? 'disabled'"
+               th:href="@{/actors(page=${currentPage - 1}, size=10, search=${search})}">← Prev</a>
+
+            <th:block th:with="totalPages=${actorsPage['totalPages']},
+                               startPage=${currentPage - 4 < 0 ? 0 : (currentPage + 4 >= totalPages ? (totalPages - 9 < 0 ? 0 : totalPages - 9) : currentPage - 4)},
+                               endPage=${startPage + 8 >= totalPages ? totalPages - 1 : startPage + 8}">
+                <th:block th:each="i : ${#numbers.sequence(startPage, endPage)}">
+                    <a class="page-link" th:classappend="${i == currentPage} ? 'active'"
+                       th:href="@{/actors(page=${i}, size=10, search=${search})}"
+                       th:text="${i + 1}">1</a>
+                </th:block>
+            </th:block>
+
+            <a class="page-link" th:classappend="${currentPage == actorsPage['totalPages'] - 1} ? 'disabled'"
+               th:href="@{/actors(page=${currentPage + 1}, size=10, search=${search})}">Next →</a>
+        </div>
+    </main>
+</div>
+</body>
+</html>
