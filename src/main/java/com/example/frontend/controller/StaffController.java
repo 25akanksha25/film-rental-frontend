@@ -1,10 +1,10 @@
 package com.example.frontend.controller;
 
-import com.movie_rental_frontend.dto.CityResponseDto;
-import com.movie_rental_frontend.dto.StaffRegisterDto;
-import com.movie_rental_frontend.dto.StaffResponseDto;
-import com.movie_rental_frontend.service.LocationService;
-import com.movie_rental_frontend.service.StaffService;
+import com.example.frontend.dto.CityResponseDto;
+import com.example.frontend.dto.StaffRegisterDto;
+import com.example.frontend.dto.StaffResponseDto;
+import com.example.frontend.service.LocationService;
+import com.example.frontend.service.StaffService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
