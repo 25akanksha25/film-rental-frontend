@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('CineManage - Staff')}"></head>
+<body>
+<div class="app-layout">
+    <div th:replace="~{fragments/layout :: sidebar('staff')}"></div>
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1>Staff Members</h1>
+                <p>Manage and view all staff members at your store</p>
+            </div>
+            <div class="d-flex gap-1">
+                <form th:action="@{/staff}" method="get" class="d-flex gap-1">
+                    <input type="text" name="search" class="form-control" placeholder="Search staff..."
+                           th:value="${search}" style="width:220px;"/>
+                    <button type="submit" class="btn btn-secondary">Search</button>
+                </form>
+                <button class="btn btn-primary" onclick="document.getElementById('addStaffModal').classList.add('active')">Add New</button>
+            </div>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+        <div class="card">
+            <div class="table-container">
+                <table class="data-table">
+                    <thead>
+                    <tr>
+                        <th style="width:50px"></th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${staffPage != null && staffPage['content'] != null}"
+                        th:each="staff : ${staffPage['content']}">
+                        <td>
+                            <div class="staff-avatar">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            </div>
+                        </td>
+                        <td style="color:var(--text-primary);font-weight:600" th:text="${staff['fullName']}">Name</td>
+                        <td th:text="${staff['email']}">email</td>
+                        <td>
+                            <span class="badge" th:classappend="${staff['active']} ? 'badge-success' : 'badge-warning'"
+                                  th:text="${staff['active']} ? 'Active' : 'On Leave'">Active</span>
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <a th:href="@{'/staff/' + ${staff['staffId']}}" class="btn btn-sm btn-secondary">View</a>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div th:if="${staffPage == null || staffPage['content'] == null || staffPage['content'].isEmpty()}" class="empty-state">
+                <div class="icon">👨‍💼</div>
+                <p>No staff members found.</p>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div th:if="${staffPage != null && staffPage['totalPages'] != null && staffPage['totalPages'] > 1}" class="pagination">
+            <a class="page-link" th:classappend="${currentPage == 0} ? 'disabled'"
+               th:href="@{/staff(page=${currentPage - 1}, size=10, search=${search})}">← Prev</a>
+
+            <th:block th:with="totalPages=${staffPage['totalPages']},
+                               startPage=${currentPage - 4 < 0 ? 0 : (currentPage + 4 >= totalPages ? (totalPages - 9 < 0 ? 0 : totalPages - 9) : currentPage - 4)},
+                               endPage=${startPage + 8 >= totalPages ? totalPages - 1 : startPage + 8}">
+                <th:block th:each="i : ${#numbers.sequence(startPage, endPage)}">
+                    <a class="page-link" th:classappend="${i == currentPage} ? 'active'"
+                       th:href="@{/staff(page=${i}, size=10, search=${search})}"
+                       th:text="${i + 1}">1</a>
+                </th:block>
+            </th:block>
+
+            <a class="page-link" th:classappend="${currentPage == staffPage['totalPages'] - 1} ? 'disabled'"
+               th:href="@{/staff(page=${currentPage + 1}, size=10, search=${search})}">Next →</a>
+        </div>
+
+        <!-- Add Staff Modal -->
+        <div id="addStaffModal" class="modal-overlay">
+            <div class="modal" style="max-width:680px;">
+                <div class="modal-header">
+                    <h3>Add New Staff Member</h3>
+                    <button class="modal-close" onclick="document.getElementById('addStaffModal').classList.remove('active')">&times;</button>
+                </div>
+                <form th:action="@{/staff}" method="post" th:object="${registerDto}">
+
+                    <!-- Section 1: Personal -->
+                    <div class="form-section">
+                        <div class="form-section-title">Personal Information</div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>First Name</label>
+                                <input type="text" class="form-control" th:field="*{firstName}" placeholder="John"
+                                       required maxlength="45"
+                                       pattern="[A-Za-z][A-Za-z '\-]*"
+                                       title="Letters, spaces, apostrophes and hyphens only; must start with a letter"/>
+                            </div>
+                            <div class="form-group">
+                                <label>Last Name</label>
+                                <input type="text" class="form-control" th:field="*{lastName}" placeholder="Doe"
+                                       required maxlength="45"
+                                       pattern="[A-Za-z][A-Za-z '\-]*"
+                                       title="Letters, spaces, apostrophes and hyphens only; must start with a letter"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" class="form-control" th:field="*{email}" placeholder="john@cinemanage.com"
+                                   required maxlength="50"/>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Login -->
+                    <div class="form-section">
+                        <div class="form-section-title">Login Credentials</div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Username</label>
+                                <input type="text" class="form-control" th:field="*{username}" placeholder="johndoe"
+                                       required minlength="3" maxlength="16"
+                                       pattern="[A-Za-z0-9_]+"
+                                       title="3-16 characters: letters, digits and underscores"/>
+                            </div>
+                            <div class="form-group">
+                                <label>Password</label>
+                                <input type="password" class="form-control" th:field="*{password}"
+                                       placeholder="e.g. Test@1234"
+                                       required minlength="8" maxlength="16"
+                                       pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#]).{8,16}"
+                                       title="8-16 chars with an uppercase letter, lowercase letter, digit and special character (@$!%*?&#)"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Store</label>
+                            <select class="form-control" th:field="*{storeId}" required>
+                                <option value="">Select store</option>
+                                <option value="1">Store #1</option>
+                                <option value="2">Store #2</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Section 3: Address -->
+                    <div class="form-section">
+                        <div class="form-section-title">Address</div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Country</label>
+                                <select id="countrySelect" class="form-control" required>
+                                    <option value="">Select country</option>
+                                    <option th:each="c : ${countries}" th:value="${c.countryId}" th:text="${c.name}"></option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>City</label>
+                                <select id="citySelect" class="form-control" th:field="*{cityId}" required disabled>
+                                    <option value="">Pick a country first</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Address Line 1</label>
+                            <input type="text" class="form-control" th:field="*{address}" placeholder="123 Main St"
+                                   required maxlength="50"/>
+                        </div>
+                        <div class="form-group">
+                            <label>Address Line 2 <span class="optional-tag">(optional)</span></label>
+                            <input type="text" class="form-control" th:field="*{address2}" placeholder="Apt, suite, etc."
+                                   maxlength="50"/>
+                        </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>District / State</label>
+                                <input type="text" class="form-control" th:field="*{district}" placeholder="California"
+                                       required maxlength="20"/>
+                            </div>
+                            <div class="form-group">
+                                <label>Postal Code <span class="optional-tag">(optional)</span></label>
+                                <input type="text" class="form-control" th:field="*{postalCode}" placeholder="90210"
+                                       maxlength="10"
+                                       pattern="[A-Za-z0-9 \-]{3,10}"
+                                       title="3-10 letters, digits, spaces or hyphens"/>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <input type="tel" class="form-control" th:field="*{phone}" placeholder="5551234567"
+                                   required maxlength="10" minlength="10"
+                                   pattern="\d{10}" inputmode="numeric"
+                                   title="Exactly 10 digits (no spaces or dashes)"/>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block mt-2">Create Staff Member</button>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+
+<style>
+    .form-section { padding-bottom: 1.25rem; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); }
+    .form-section:last-of-type { border-bottom: none; margin-bottom: 0.75rem; }
+    .form-section-title {
+        font-size: 0.78rem; font-weight: 700; letter-spacing: 0.5px;
+        text-transform: uppercase; color: var(--text-muted);
+        margin-bottom: 0.85rem;
+    }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .optional-tag {
+        color: var(--text-muted); font-weight: 400;
+        font-size: 0.78rem;
+    }
+    .modal { max-height: 88vh; overflow-y: auto; }
+    @media (max-width: 540px) {
+        .form-grid { grid-template-columns: 1fr; }
+    }
+</style>
+
+<script>
+    // Cascade: when country changes, populate cities via /staff/cities AJAX
+    (function() {
+        const countrySel = document.getElementById('countrySelect');
+        const citySel = document.getElementById('citySelect');
+        if (!countrySel || !citySel) return;
+
+        countrySel.addEventListener('change', async function() {
+            const id = this.value;
+            citySel.innerHTML = '<option value="">Loading…</option>';
+            citySel.disabled = true;
+            if (!id) {
+                citySel.innerHTML = '<option value="">Pick a country first</option>';
+                return;
+            }
+            try {
+                const res = await fetch('/staff/cities?countryId=' + encodeURIComponent(id));
+                const cities = await res.json();
+                if (!cities.length) {
+                    citySel.innerHTML = '<option value="">No cities available</option>';
+                    return;
+                }
+                citySel.innerHTML = '<option value="">Select city</option>'
+                    + cities.map(c => `<option value="${c.cityId}">${c.name}</option>`).join('');
+                citySel.disabled = false;
+            } catch (err) {
+                citySel.innerHTML = '<option value="">Failed to load cities</option>';
+            }
+        });
+    })();
+</script>
+</body>
+</html>

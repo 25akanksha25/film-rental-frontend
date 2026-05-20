@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('CineManage - Staff Details')}"></head>
+<body>
+<div class="app-layout">
+    <div th:replace="~{fragments/layout :: sidebar('staff')}"></div>
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <a href="/staff" class="btn btn-secondary btn-sm" style="margin-bottom:0.75rem;">← Back to Staff</a>
+                <h1>Staff Details</h1>
+            </div>
+        </div>
+
+        <div th:if="${staff != null}" style="max-width:760px;">
+
+            <!-- Profile card -->
+            <div class="card" style="margin-bottom:1.25rem;">
+                <div class="card-body">
+                    <div class="d-flex align-center gap-2" style="margin-bottom:1.5rem;">
+                        <div style="width:64px;height:64px;border-radius:50%;background:#e2e8f0;display:flex;align-items:center;justify-content:center;">
+                            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </div>
+                        <div>
+                            <h2 style="font-size:1.4rem;font-weight:800;color:var(--text-primary)" th:text="${staff.fullName}">Staff Name</h2>
+                            <span class="badge" th:classappend="${staff.active} ? 'badge-success' : 'badge-warning'"
+                                  th:text="${staff.active} ? 'Active' : 'On Leave'">Active</span>
+                        </div>
+                    </div>
+
+                    <div class="detail-section-title">Account</div>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <div class="detail-label">Staff ID</div>
+                            <div class="detail-value" th:text="'#' + ${staff.staffId}">#1</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Username</div>
+                            <div class="detail-value" th:text="${staff.username}">username</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Email</div>
+                            <div class="detail-value" th:text="${staff.email}">email</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Store</div>
+                            <div class="detail-value" th:text="'Store #' + ${staff.storeId}">Store #1</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Address card -->
+            <div class="card" th:if="${staff.address != null}">
+                <div class="card-body">
+                    <div class="detail-section-title">Address</div>
+                    <div class="detail-grid">
+                        <div class="detail-item" style="grid-column:1 / -1;">
+                            <div class="detail-label">Street</div>
+                            <div class="detail-value">
+                                <span th:text="${staff.address}">123 Main St</span>
+                                <span th:if="${staff.address2 != null and staff.address2 != ''}" th:text="', ' + ${staff.address2}"></span>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">District / State</div>
+                            <div class="detail-value" th:text="${staff.district != null ? staff.district : '—'}">District</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Postal Code</div>
+                            <div class="detail-value" th:text="${staff.postalCode != null and staff.postalCode != '' ? staff.postalCode : '—'}">00000</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">City</div>
+                            <div class="detail-value" th:text="${staff.city != null ? staff.city : '—'}">City</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Country</div>
+                            <div class="detail-value" th:text="${staff.country != null ? staff.country : '—'}">Country</div>
+                        </div>
+                        <div class="detail-item" style="grid-column:1 / -1;">
+                            <div class="detail-label">Phone</div>
+                            <div class="detail-value" th:text="${staff.phone != null ? staff.phone : '—'}">+1 555 555 5555</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card" th:if="${staff.address == null}">
+                <div class="card-body" style="text-align:center;color:var(--text-muted);padding:1.5rem;">
+                    No address on file for this staff member.
+                </div>
+            </div>
+        </div>
+
+        <div th:if="${staff == null}" class="empty-state">
+            <div class="icon">❌</div>
+            <p>Staff member not found.</p>
+            <a href="/staff" class="btn btn-secondary btn-sm mt-2">Go Back</a>
+        </div>
+    </main>
+</div>
+
+<style>
+    .detail-section-title {
+        font-size: 0.78rem; font-weight: 700; letter-spacing: 0.5px;
+        text-transform: uppercase; color: var(--text-muted);
+        margin: 0.5rem 0 1rem;
+    }
+    .detail-grid {
+        display: grid; grid-template-columns: 1fr 1fr;
+        gap: 1rem 1.5rem;
+    }
+    .detail-item .detail-label {
+        font-size: 0.78rem; color: var(--text-muted);
+        margin-bottom: 0.2rem;
+    }
+    .detail-item .detail-value {
+        color: var(--text-primary); font-weight: 600;
+    }
+    @media (max-width: 540px) { .detail-grid { grid-template-columns: 1fr; } }
+</style>
+</body>
+</html>
