@@ -67,13 +67,13 @@
         </div>
 
         <!-- Pagination -->
-        <div th:if="${inventoryPage != null && inventoryPage['page'] != null && inventoryPage['page']['totalPages'] > 1}" class="pagination">
+        <div th:if="${inventoryPage != null && inventoryPage['totalPages'] != null && inventoryPage['totalPages'] > 1}" class="pagination">
             <a class="page-link" th:classappend="${currentPage == 0} ? 'disabled'"
                th:href="@{/inventory(page=${currentPage - 1}, size=10, search=${search})}">← Prev</a>
 
-            <th:block th:with="totalPages=${inventoryPage['page']['totalPages']},
-                               startPage=${currentPage - 4 < 0 ? 0 : (currentPage + 4 >= totalPages ? (totalPages - 9 < 0 ? 0 : totalPages - 9) : currentPage - 4)},
-                               endPage=${startPage + 8 >= totalPages ? totalPages - 1 : startPage + 8}">
+            <th:block th:with="totalPages=${inventoryPage['totalPages']},
+                       startPage=${currentPage - 4 < 0 ? 0 : (currentPage + 4 >= totalPages ? (totalPages - 9 < 0 ? 0 : totalPages - 9) : currentPage - 4)},
+                       endPage=${startPage + 8 >= totalPages ? totalPages - 1 : startPage + 8}">
                 <th:block th:each="i : ${#numbers.sequence(startPage, endPage)}">
                     <a class="page-link" th:classappend="${i == currentPage} ? 'active'"
                        th:href="@{/inventory(page=${i}, size=10, search=${search})}"
@@ -81,7 +81,7 @@
                 </th:block>
             </th:block>
 
-            <a class="page-link" th:classappend="${currentPage == inventoryPage['page']['totalPages'] - 1} ? 'disabled'"
+            <a class="page-link" th:classappend="${currentPage == inventoryPage['totalPages'] - 1} ? 'disabled'"
                th:href="@{/inventory(page=${currentPage + 1}, size=10, search=${search})}">Next →</a>
         </div>
     </main>
