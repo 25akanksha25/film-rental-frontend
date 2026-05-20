@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>CineManage — Staff Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            background: #f4f5f7;
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            padding: 2rem 1rem;
+            color: #0f172a;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .login-card {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            width: 100%;
+            max-width: 1024px;
+            min-height: 580px;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 20px 60px rgba(15, 23, 42, 0.10), 0 2px 4px rgba(15, 23, 42, 0.04);
+            overflow: hidden;
+        }
+
+        /* -------- Left panel (hero) -------- */
+        .hero-panel {
+            position: relative;
+            color: #fff;
+            padding: 2rem;
+            display: flex; flex-direction: column;
+            justify-content: space-between;
+            background:
+                linear-gradient(180deg, rgba(0,0,0,0.45) 0%, rgba(0,0,0,0.7) 100%),
+                url('https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=1200&q=80');
+            background-size: cover;
+            background-position: center;
+            min-height: 580px;
+        }
+
+        .brand { display: flex; align-items: center; gap: 0.6rem; }
+        .brand-logo {
+            width: 36px; height: 36px;
+            background: #fff; color: #0f172a;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .brand-name { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.01em; }
+
+        .hero-text { max-width: 360px; }
+        .hero-title {
+            font-size: 1.7rem; font-weight: 800;
+            line-height: 1.25; letter-spacing: -0.01em;
+            margin-bottom: 0.85rem;
+        }
+        .hero-sub { font-size: 0.95rem; line-height: 1.55; color: rgba(255,255,255,0.78); }
+
+        /* -------- Right panel (form) -------- */
+        .form-panel {
+            padding: 3rem 3.25rem;
+            display: flex; flex-direction: column; justify-content: center;
+        }
+
+        .form-title {
+            font-size: 1.8rem; font-weight: 800;
+            letter-spacing: -0.02em; margin-bottom: 0.4rem;
+        }
+        .form-sub { color: #64748b; font-size: 0.95rem; margin-bottom: 2rem; }
+
+        .form-group { margin-bottom: 1.25rem; }
+        .form-label {
+            display: block; font-size: 0.85rem; font-weight: 700;
+            margin-bottom: 0.45rem;
+        }
+
+        .input-wrap { position: relative; }
+        .input-wrap .input-icon {
+            position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%);
+            color: #94a3b8; pointer-events: none;
+        }
+        .form-input {
+            width: 100%;
+            padding: 0.85rem 0.85rem 0.85rem 2.55rem;
+            border: 1px solid transparent;
+            background: #f1f5f9;
+            border-radius: 10px;
+            font-size: 0.92rem; color: #0f172a;
+            transition: all 0.15s; font-family: inherit;
+        }
+        .form-input::placeholder { color: #94a3b8; }
+        .form-input:focus {
+            outline: none; background: #fff;
+            border-color: #0f172a;
+            box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.08);
+        }
+
+        .extras-row {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+        .remember-me {
+            display: flex; align-items: center; gap: 0.5rem;
+            color: #64748b; font-size: 0.85rem;
+            cursor: pointer; user-select: none;
+        }
+        .remember-me input {
+            appearance: none; width: 16px; height: 16px;
+            border: 1.5px solid #cbd5e1; border-radius: 4px;
+            cursor: pointer; position: relative; transition: all 0.15s;
+        }
+        .remember-me input:checked { background: #0f172a; border-color: #0f172a; }
+        .remember-me input:checked::after {
+            content: ''; position: absolute;
+            left: 4px; top: 1px; width: 5px; height: 9px;
+            border: solid #fff; border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+        .forgot-link {
+            color: #0f172a; font-weight: 700; font-size: 0.85rem;
+            text-decoration: none;
+        }
+        .forgot-link:hover { text-decoration: underline; }
+
+        .submit-btn {
+            width: 100%;
+            background: #0f172a; color: #fff;
+            border: none;
+            padding: 0.95rem 1rem;
+            border-radius: 10px;
+            font-size: 0.95rem; font-weight: 700;
+            cursor: pointer; font-family: inherit;
+            display: flex; align-items: center; justify-content: center;
+            gap: 0.5rem;
+            transition: transform 0.1s, background 0.15s;
+        }
+        .submit-btn:hover { background: #1e293b; }
+        .submit-btn:active { transform: scale(0.99); }
+
+        .signup-row {
+            text-align: center; margin-top: 1.5rem;
+            color: #64748b; font-size: 0.88rem;
+        }
+        .signup-row a { color: #0f172a; font-weight: 700; text-decoration: none; }
+        .signup-row a:hover { text-decoration: underline; }
+
+        .alert {
+            padding: 0.75rem 1rem; border-radius: 8px;
+            margin-bottom: 1.25rem; font-size: 0.88rem;
+        }
+        .alert-danger { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+        .alert-success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+
+        @media (max-width: 880px) {
+            .login-card { grid-template-columns: 1fr; max-width: 460px; min-height: auto; }
+            .hero-panel { display: none; }
+            .form-panel { padding: 2.5rem 2rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="login-card">
+
+    <!-- LEFT: hero image with brand + tagline -->
+    <aside class="hero-panel">
+        <div class="brand">
+            <div class="brand-logo">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="2" width="20" height="20" rx="2.18"/>
+                    <line x1="7" y1="2" x2="7" y2="22"/>
+                    <line x1="17" y1="2" x2="17" y2="22"/>
+                    <line x1="2" y1="12" x2="22" y2="12"/>
+                    <line x1="2" y1="7" x2="7" y2="7"/>
+                    <line x1="2" y1="17" x2="7" y2="17"/>
+                    <line x1="17" y1="17" x2="22" y2="17"/>
+                    <line x1="17" y1="7" x2="22" y2="7"/>
+                </svg>
+            </div>
+            <div class="brand-name">CineManage</div>
+        </div>
+
+        <div class="hero-text">
+            <h2 class="hero-title">Streamlining your cinema management experience.</h2>
+            <p class="hero-sub">Access the hub for films, rentals, and customer analytics.</p>
+        </div>
+    </aside>
+
+    <!-- RIGHT: login form -->
+    <section class="form-panel">
+        <h1 class="form-title">Staff Login</h1>
+        <p class="form-sub">Please enter your credentials to access the dashboard.</p>
+
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+        <form th:action="@{/login}" method="post" th:object="${loginRequest}">
+            <div class="form-group">
+                <label class="form-label" for="username">Staff Username</label>
+                <div class="input-wrap">
+                    <span class="input-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </span>
+                    <input type="text" id="username" class="form-input" th:field="*{username}"
+                           placeholder="e.g. staff_123 or name@cinemanage.com"
+                           required maxlength="20" autofocus/>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">Password</label>
+                <div class="input-wrap">
+                    <span class="input-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    </span>
+                    <input type="password" id="password" class="form-input" th:field="*{password}"
+                           placeholder="••••••••" required maxlength="100"/>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">
+                Login to Dashboard
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+        </form>
+    </section>
+</div>
+</body>
+</html>
