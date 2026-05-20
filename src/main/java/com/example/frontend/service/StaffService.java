@@ -37,10 +37,12 @@ public class StaffService {
     }
 
     public Map<String, Object> getAllStaff(String token, int page, int size) {
-        URI uri = UriComponentsBuilder.fromHttpUrl(backendUrl + "/staff")
+        URI uri = UriComponentsBuilder
+                .fromUriString(backendUrl + "/staff")
                 .queryParam("page", page)
                 .queryParam("size", size)
-                .build().toUri();
+                .build()
+                .toUri();
         HttpEntity<?> entity = new HttpEntity<>(createAuthHeaders(token));
         try {
             ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
@@ -55,11 +57,13 @@ public class StaffService {
     }
 
     public Map<String, Object> searchStaff(String token, String name, int page, int size) {
-        URI uri = UriComponentsBuilder.fromHttpUrl(backendUrl + "/staff/search")
+        URI uri = UriComponentsBuilder
+                .fromUriString(backendUrl + "/staff/search")
                 .queryParam("name", name)
                 .queryParam("page", page)
                 .queryParam("size", size)
-                .build().toUri();
+                .build()
+                .toUri();
         HttpEntity<?> entity = new HttpEntity<>(createAuthHeaders(token));
         try {
             ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
