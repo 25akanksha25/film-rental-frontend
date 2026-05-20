@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('CineRental - Customers')}"></head>
+<body>
+<div class="bg-animation"></div>
+<div class="app-layout">
+    <div th:replace="~{fragments/layout :: sidebar('customers')}"></div>
+    <main class="main-content">
+        <div class="page-header">
+            <div><h1>👥 Customers</h1><p>Manage customer records</p></div>
+        </div>
+
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+        <form th:action="@{/customers}" method="get" class="search-bar">
+            <input type="text" name="search" class="form-control" placeholder="Search by name..." th:value="${search}"/>
+            <button type="submit" class="btn btn-primary">🔍 Search</button>
+            <a href="/customers" class="btn btn-secondary">Clear</a>
+        </form>
+
+        <div class="card">
+            <div class="table-container">
+                <table class="data-table">
+                    <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Store</th><th>Status</th><th>Actions</th></tr></thead>
+                    <tbody>
+                    <tr th:if="${customersPage != null && customersPage['content'] != null}" th:each="cust : ${customersPage['content']}">
+                        <td th:text="${cust['customerId']}">1</td>
+                        <td style="color:var(--text-primary);font-weight:600" th:text="${cust['fullName']}">Name</td>
+                        <td th:text="${cust['email']}">email</td>
+                        <td th:text="'Store #' + ${cust['storeId']}">Store #1</td>
+                        <td><span class="badge" th:classappend="${cust['active']} ? 'badge-success' : 'badge-danger'" th:text="${cust['active']} ? 'Active' : 'Inactive'">Active</span></td>
+                        <td><a th:href="@{'/rentals?customerId=' + ${cust['customerId']}}" class="btn btn-sm btn-outline">View Rentals</a></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div th:if="${customersPage == null || customersPage['content'] == null || customersPage['content'].isEmpty()}" class="empty-state">
+                <div class="icon">👥</div><p>No customers found.</p>
+            </div>
+            <!-- Pagination (max 9 pages visible + Prev/Next) -->
+            <div th:if="${customersPage != null && customersPage['totalPages'] != null && customersPage['totalPages'] > 1}" class="pagination">
+                <a class="page-link" th:classappend="${currentPage == 0} ? 'disabled'" th:href="@{/customers(page=${currentPage - 1}, size=10, search=${search})}">← Prev</a>
+
+                <th:block th:with="totalPages=${customersPage['totalPages']},
+                               startPage=${currentPage - 4 < 0 ? 0 : (currentPage + 4 >= totalPages ? (totalPages - 9 < 0 ? 0 : totalPages - 9) : currentPage - 4)},
+                               endPage=${startPage + 8 >= totalPages ? totalPages - 1 : startPage + 8}">
+                    <th:block th:each="i : ${#numbers.sequence(startPage, endPage)}">
+                        <a class="page-link" th:classappend="${i == currentPage} ? 'active'" th:href="@{/customers(page=${i}, size=10, search=${search})}" th:text="${i + 1}">1</a>
+                    </th:block>
+                </th:block>
+
+                <a class="page-link" th:classappend="${currentPage == customersPage['totalPages'] - 1} ? 'disabled'" th:href="@{/customers(page=${currentPage + 1}, size=10, search=${search})}">Next →</a>
+            </div>
+        </div>
+    </main>
+</div>
+</body>
+</html>
